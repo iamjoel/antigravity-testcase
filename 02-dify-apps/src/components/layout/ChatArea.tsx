@@ -179,9 +179,9 @@ export function ChatArea() {
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="h-16 px-4 border-b-4 border-black flex items-center gap-3 flex-shrink-0 bg-white">
-        <span className="text-3xl filter drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">{activeApp.icon}</span>
-        <h2 className="text-xl font-black uppercase tracking-wide">{activeApp.name}</h2>
+      <div className="h-16 px-4 border-b-4 border-black flex items-center gap-3 flex-shrink-0 bg-white min-w-0">
+        <span className="text-3xl flex-shrink-0 filter drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">{activeApp.icon}</span>
+        <h2 className="text-xl font-black uppercase tracking-wide truncate overflow-hidden text-ellipsis whitespace-nowrap">{activeApp.name}</h2>
       </div>
 
       <div className="flex-1 min-h-0 bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:16px_16px] bg-white/50">

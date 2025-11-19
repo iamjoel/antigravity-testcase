@@ -59,7 +59,7 @@ export function ConversationList() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background border-r-4 border-black">
+    <div className="flex flex-col h-full bg-background">
       <div className="h-16 px-4 border-b-4 border-black flex items-center justify-between flex-shrink-0 bg-white">
         <h2 className="text-lg font-black uppercase tracking-wide">Conversations</h2>
         <Button
@@ -92,9 +92,9 @@ export function ConversationList() {
               )}
               onClick={() => setActiveConversation(conversation.id)}
             >
-              <div className="flex items-center gap-3 overflow-hidden">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                <span className="truncate font-bold">{conversation.name || 'NEW CHAT'}</span>
+                <span className="truncate font-bold overflow-hidden text-ellipsis whitespace-nowrap">{conversation.name || 'NEW CHAT'}</span>
               </div>
               <Button
                 variant="ghost"

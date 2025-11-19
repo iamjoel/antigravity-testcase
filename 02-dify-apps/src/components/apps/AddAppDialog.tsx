@@ -89,8 +89,12 @@ export function AddAppDialog() {
   return (
     <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) resetForm(); }}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-transparent">
-          <Plus className="h-6 w-6 text-black hover:scale-110 transition-transform" />
+        <Button
+          variant="outline"
+          size="icon"
+          className="border-2 border-black shadow-[2px_2px_0px_0px_#000000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all rounded-none bg-secondary text-black hover:bg-secondary"
+        >
+          <Plus className="h-5 w-5" />
           <span className="sr-only">Add App</span>
         </Button>
       </DialogTrigger>

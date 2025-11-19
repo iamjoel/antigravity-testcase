@@ -44,7 +44,7 @@ export function AppSidebar() {
   const filteredApps = apps.filter(app => app.type === activeTab);
 
   return (
-    <div className="flex flex-col h-full bg-background border-r-4 border-black">
+    <div className="flex flex-col h-full bg-background">
       <div className="h-16 px-4 flex items-center justify-between flex-shrink-0 border-b-4 border-black bg-white">
         <h2 className="text-sm font-black text-black tracking-wider uppercase">Web Apps</h2>
         <AddAppDialog />
@@ -97,7 +97,7 @@ export function AppSidebar() {
               onClick={() => handleAppClick(app.id)}
             >
               <span className="text-2xl flex-shrink-0 filter drop-shadow-sm">{app.icon}</span>
-              <span className="truncate font-bold flex-1 text-left uppercase tracking-tight">{app.name}</span>
+              <span className="truncate font-bold flex-1 text-left uppercase tracking-tight overflow-hidden text-ellipsis whitespace-nowrap">{app.name}</span>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
