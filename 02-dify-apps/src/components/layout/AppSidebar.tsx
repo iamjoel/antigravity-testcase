@@ -24,7 +24,7 @@ export function AppSidebar() {
 
   return (
     <div className="flex flex-col h-full bg-[#F5F7FA] dark:bg-muted/10">
-      <div className="p-4 flex items-center justify-between">
+      <div className="h-16 px-4 flex items-center justify-between flex-shrink-0">
         <h2 className="text-xs font-semibold text-muted-foreground tracking-wider">WEB APPS</h2>
         <AddAppDialog />
       </div>
