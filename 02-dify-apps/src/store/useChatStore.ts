@@ -41,6 +41,7 @@ interface ChatState {
   loadLocalConversation: (conversationId: string) => void;
   fetchModelConversations: (appId: string) => void;
   deleteLocalConversation: (appId: string, conversationId: string) => void;
+  renameLocalConversation: (appId: string, conversationId: string, name: string) => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -252,6 +253,23 @@ export const useChatStore = create<ChatState>()(
             conversations: updatedConversations, // Update current view
             activeConversationId: state.activeConversationId === conversationId ? null : state.activeConversationId,
             messages: state.activeConversationId === conversationId ? [] : state.messages
+          };
+        });
+      },
+
+      renameLocalConversation: (appId, conversationId, name) => {
+        set((state) => {
+          const appConversations = state.modelConversations[appId] || [];
+          const updatedConversations = appConversations.map(c =>
+            c.id === conversationId ? { ...c, name } : c
+          );
+
+          return {
+            modelConversations: {
+              ...state.modelConversations,
+              [appId]: updatedConversations
+            },
+            conversations: updatedConversations // Update current view if active app matches
           };
         });
       },

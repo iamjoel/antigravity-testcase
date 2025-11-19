@@ -119,6 +119,7 @@ export function ChatArea() {
       } else {
         // Model App
         const { sendModelMessage } = await import('@/lib/model-client');
+        const { generateTitle } = await import('@/app/actions/generate-title');
 
         // Prepare history for model context
         const history = messages.map(m => ({ role: m.role, content: m.content }));
@@ -134,6 +135,29 @@ export function ChatArea() {
             updateMessage(assistantMsgId, currentAnswer);
           }
         );
+
+        // Check if this was the first exchange (messages was empty before this turn, so now it has 2 messages: user + assistant)
+        // We can check if the conversation name is "New Chat" or if messages.length is small.
+        // Since we just added 2 messages, let's check if total messages count is 2.
+        // Note: messages state might not be updated yet in this closure if we rely on `messages` var from render.
+        // But we can check `useChatStore.getState().messages`.
+        const currentMessages = useChatStore.getState().messages;
+        // We expect at least 2 messages now.
+        // Actually, let's just check if the conversation name is "New Chat"
+        const currentConversation = useChatStore.getState().conversations.find(c => c.id === currentConversationId);
+
+        if (currentConversation && currentConversation.name === 'New Chat') {
+          // Generate title
+          generateTitle(
+            activeApp.modelConfig?.model || 'gpt-3.5-turbo',
+            userMessageContent,
+            currentAnswer
+          ).then((title) => {
+            if (title && currentConversationId) {
+              useChatStore.getState().renameLocalConversation(activeApp.id, currentConversationId, title);
+            }
+          });
+        }
 
       }
 
