@@ -154,44 +154,44 @@ export function ChatArea() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <div className="h-16 px-4 border-b flex items-center gap-3 flex-shrink-0">
-        <span className="text-2xl">{activeApp.icon}</span>
-        <h2 className="text-lg font-semibold">{activeApp.name}</h2>
+    <div className="flex flex-col h-full bg-white">
+      <div className="h-16 px-4 border-b-4 border-black flex items-center gap-3 flex-shrink-0 bg-white">
+        <span className="text-3xl filter drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">{activeApp.icon}</span>
+        <h2 className="text-xl font-black uppercase tracking-wide">{activeApp.name}</h2>
       </div>
 
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:16px_16px] bg-white/50">
         <ScrollArea className="h-full">
-          <div className="space-y-4 max-w-3xl mx-auto p-4">
+          <div className="space-y-6 max-w-3xl mx-auto p-6">
             {isLoadingMessages && messages.length === 0 && (
-              <div className="text-center text-sm text-muted-foreground">Loading messages...</div>
+              <div className="text-center text-sm font-bold animate-pulse">LOADING MESSAGES...</div>
             )}
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={cn(
-                  "flex gap-3",
+                  "flex gap-4",
                   message.role === 'user' ? "justify-end" : "justify-start"
                 )}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Bot className="h-5 w-5 text-primary" />
+                  <div className="w-10 h-10 border-2 border-black bg-white flex items-center justify-center flex-shrink-0 shadow-[4px_4px_0px_0px_#000000]">
+                    <Bot className="h-6 w-6 text-black" />
                   </div>
                 )}
                 <div
                   className={cn(
-                    "rounded-lg p-3 max-w-[80%]",
+                    "p-4 max-w-[80%] border-2 border-black shadow-[4px_4px_0px_0px_#000000]",
                     message.role === 'user'
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                      ? "bg-secondary text-black"
+                      : "bg-white text-black"
                   )}
                 >
-                  <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                  <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed">{message.content}</p>
                 </div>
                 {message.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                    <User className="h-5 w-5 text-primary-foreground" />
+                  <div className="w-10 h-10 border-2 border-black bg-primary flex items-center justify-center flex-shrink-0 shadow-[4px_4px_0px_0px_#000000]">
+                    <User className="h-6 w-6 text-black" />
                   </div>
                 )}
               </div>
@@ -201,13 +201,13 @@ export function ChatArea() {
         </ScrollArea>
       </div>
 
-      <div className="p-4 border-t flex-shrink-0">
-        <div className="max-w-3xl mx-auto flex gap-2">
+      <div className="p-6 border-t-4 border-black bg-white flex-shrink-0">
+        <div className="max-w-3xl mx-auto flex gap-3">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message..."
-            className="min-h-[50px] max-h-[200px]"
+            placeholder="TYPE A MESSAGE..."
+            className="min-h-[60px] max-h-[200px] border-2 border-black shadow-[4px_4px_0px_0px_#000000] rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base font-medium placeholder:text-muted-foreground/70"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -215,8 +215,13 @@ export function ChatArea() {
               }
             }}
           />
-          <Button onClick={handleSend} disabled={isSending || !input.trim()} size="icon" className="h-[50px] w-[50px]">
-            <Send className="h-5 w-5" />
+          <Button
+            onClick={handleSend}
+            disabled={isSending || !input.trim()}
+            size="icon"
+            className="h-[60px] w-[60px] border-2 border-black shadow-[4px_4px_0px_0px_#000000] rounded-none bg-primary text-black hover:bg-primary hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0"
+          >
+            <Send className="h-6 w-6" />
           </Button>
         </div>
       </div>
