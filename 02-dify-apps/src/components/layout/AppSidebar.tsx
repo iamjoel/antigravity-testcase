@@ -11,11 +11,12 @@ export function AppSidebar() {
   const { apps, activeAppId, setActiveApp, addApp, removeApp, _hasHydrated } = useAppStore();
 
   React.useEffect(() => {
-    if (_hasHydrated && apps.length === 0) {
+    const defaultKey = process.env.NEXT_PUBLIC_DIFY_DEMO_KEY;
+    if (_hasHydrated && apps.length === 0 && defaultKey) {
       addApp({
         id: 'default-app',
         name: 'Dify Demo',
-        apiKey: 'app-w33gBVqBQIQwRKH6gIDyAqhI',
+        apiKey: defaultKey,
         icon: '🤖',
       });
     }

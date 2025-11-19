@@ -64,3 +64,82 @@ export async function sendMessage(
 
   return { conversationId: newConversationId, answer: fullAnswer };
 }
+
+export async function getConversations(apiKey: string, user: string, lastId?: string, limit: number = 20) {
+  const params = new URLSearchParams({
+    user,
+    limit: limit.toString(),
+  });
+  if (lastId) params.append('last_id', lastId);
+
+  const response = await fetch(`https://api.dify.dev/v1/conversations?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getMessages(apiKey: string, conversationId: string, user: string, firstId?: string, limit: number = 20) {
+  const params = new URLSearchParams({
+    user,
+    conversation_id: conversationId,
+    limit: limit.toString(),
+  });
+  if (firstId) params.append('first_id', firstId);
+
+  const response = await fetch(`https://api.dify.dev/v1/messages?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteConversation(apiKey: string, conversationId: string, user: string) {
+  const response = await fetch(`https://api.dify.dev/v1/conversations/${conversationId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ user }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function renameConversation(apiKey: string, conversationId: string, name: string, user: string) {
+  const response = await fetch(`https://api.dify.dev/v1/conversations/${conversationId}/name`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name, user }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.statusText}`);
+  }
+
+  return response.json();
+}
