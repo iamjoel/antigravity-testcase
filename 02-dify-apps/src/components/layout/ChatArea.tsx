@@ -21,7 +21,10 @@ export function ChatArea() {
     fetchMessages,
     setActiveConversation,
     fetchConversations,
-    isLoadingMessages
+    isLoadingMessages,
+    createLocalConversation,
+    saveLocalMessage,
+    loadLocalConversation
   } = useChatStore();
 
   const [input, setInput] = useState('');
@@ -31,10 +34,25 @@ export function ChatArea() {
   const activeApp = apps.find((a) => a.id === activeAppId);
 
   useEffect(() => {
-    if (activeApp && activeConversationId) {
-      fetchMessages(activeApp.apiKey, activeConversationId, 'user-123');
+    if (activeApp) {
+      if (activeApp.type === 'dify') {
+        if (activeConversationId) {
+          fetchMessages(activeApp.apiKey, activeConversationId, 'user-123');
+        }
+      } else {
+        // Model App
+        if (activeConversationId) {
+          loadLocalConversation(activeConversationId);
+        } else {
+          // If no active conversation, create one immediately for Model apps? 
+          // Or wait for first message? 
+          // Dify waits. Let's wait.
+          // But we need to clear messages.
+          useChatStore.getState().clearMessages();
+        }
+      }
     }
-  }, [activeApp, activeConversationId, fetchMessages]);
+  }, [activeApp, activeConversationId, fetchMessages, loadLocalConversation]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -51,45 +69,90 @@ export function ChatArea() {
 
     // Optimistic update for user message
     const userMsgId = uuidv4();
-    addMessage({
+    const userMsg = {
       id: userMsgId,
-      role: 'user',
+      role: 'user' as const,
       content: userMessageContent,
       createdAt: Date.now(),
-    });
+    };
+    addMessage(userMsg);
 
     // Placeholder for assistant message
     const assistantMsgId = uuidv4();
-    addMessage({
+    const assistantMsg = {
       id: assistantMsgId,
-      role: 'assistant',
+      role: 'assistant' as const,
       content: '',
       createdAt: Date.now(),
-    });
+    };
+    addMessage(assistantMsg);
+
+    // Handle persistence for Model apps immediately
+    let currentConversationId = activeConversationId;
+    if (activeApp.type === 'model') {
+      if (!currentConversationId) {
+        currentConversationId = createLocalConversation(activeApp.id);
+      }
+      saveLocalMessage(currentConversationId, userMsg);
+      saveLocalMessage(currentConversationId, assistantMsg);
+    }
 
     try {
       let currentAnswer = '';
 
-      const { conversationId } = await sendMessage(
-        activeApp.apiKey,
-        userMessageContent,
-        'user-123',
-        activeConversationId || undefined,
-        (chunk) => {
-          currentAnswer += chunk;
-          updateMessage(assistantMsgId, currentAnswer);
-        }
-      );
+      if (activeApp.type === 'dify') {
+        const { conversationId } = await sendMessage(
+          activeApp.apiKey,
+          userMessageContent,
+          'user-123',
+          activeConversationId || undefined,
+          (chunk) => {
+            currentAnswer += chunk;
+            updateMessage(assistantMsgId, currentAnswer);
+          }
+        );
 
-      // If new conversation started
-      if (!activeConversationId && conversationId) {
-        setActiveConversation(conversationId);
-        fetchConversations(activeApp.apiKey, 'user-123');
+        if (!activeConversationId && conversationId) {
+          setActiveConversation(conversationId);
+          fetchConversations(activeApp.apiKey, 'user-123');
+        }
+      } else {
+        // Model App
+        const { sendModelMessage } = await import('@/lib/model-client');
+
+        // Prepare history for model context
+        const history = messages.map(m => ({ role: m.role, content: m.content }));
+        history.push({ role: 'user', content: userMessageContent });
+
+        await sendModelMessage(
+          activeApp.apiKey,
+          activeApp.modelConfig?.model || 'gpt-3.5-turbo',
+          activeApp.modelConfig?.systemPrompt,
+          history,
+          (chunk) => {
+            currentAnswer += chunk;
+            updateMessage(assistantMsgId, currentAnswer);
+            if (currentConversationId) {
+              // We need to update the saved message too, but updateMessage only updates state.messages
+              // We should probably have updateLocalMessage too, or just save at the end.
+              // For streaming, saving at the end is better for performance, 
+              // but if we want real-time persistence we need to update.
+              // Let's save at the end.
+            }
+          }
+        );
+
+        if (currentConversationId) {
+          saveLocalMessage(currentConversationId, { ...assistantMsg, content: currentAnswer });
+        }
       }
 
     } catch (error) {
       console.error('Failed to send message:', error);
-      updateMessage(assistantMsgId, "Error: Failed to get response from Dify.");
+      updateMessage(assistantMsgId, "Error: Failed to get response.");
+      if (activeApp.type === 'model' && currentConversationId) {
+        saveLocalMessage(currentConversationId, { ...assistantMsg, content: "Error: Failed to get response." });
+      }
     } finally {
       setIsSending(false);
     }

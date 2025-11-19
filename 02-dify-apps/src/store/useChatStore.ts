@@ -32,6 +32,12 @@ interface ChatState {
   clearMessages: () => void;
   addMessage: (message: Message) => void;
   updateMessage: (id: string, content: string) => void;
+
+  // Local Model App Support
+  localConversations: Record<string, Message[]>;
+  createLocalConversation: (appId: string) => string;
+  saveLocalMessage: (conversationId: string, message: Message) => void;
+  loadLocalConversation: (conversationId: string) => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -137,15 +143,86 @@ export const useChatStore = create<ChatState>()(
       addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
 
       updateMessage: (id, content) =>
-        set((state) => ({
-          messages: state.messages.map((m) =>
+        set((state) => {
+          const newMessages = state.messages.map((m) =>
             m.id === id ? { ...m, content } : m
-          ),
-        })),
+          );
+
+          // If we are in a local conversation (no Dify ID logic, but we can check activeConversationId)
+          // Actually, we should probably have a way to know if current conversation is local.
+          // For now, let's just save to localConversations if it exists there.
+          const activeId = state.activeConversationId;
+          if (activeId && state.localConversations[activeId]) {
+            return {
+              messages: newMessages,
+              localConversations: {
+                ...state.localConversations,
+                [activeId]: newMessages
+              }
+            };
+          }
+
+          return { messages: newMessages };
+        }),
+
+      // Local Model App Actions
+      localConversations: {}, // Map<conversationId, Message[]>
+
+      createLocalConversation: (appId) => {
+        const id = crypto.randomUUID();
+        const newConversation: Conversation = {
+          id,
+          name: 'New Chat',
+          inputs: {},
+          introduction: '',
+          createdAt: Date.now() / 1000,
+        };
+        set((state) => ({
+          activeConversationId: id,
+          messages: [],
+          conversations: [newConversation, ...state.conversations], // Add to list (we might need to separate lists in UI or store)
+          localConversations: {
+            ...state.localConversations,
+            [id]: []
+          }
+        }));
+        return id;
+      },
+
+      saveLocalMessage: (conversationId, message) => {
+        set((state) => {
+          const currentMessages = state.localConversations[conversationId] || [];
+          const newMessages = [...currentMessages, message];
+
+          // Also update main messages if this is active
+          const updates: Partial<ChatState> = {
+            localConversations: {
+              ...state.localConversations,
+              [conversationId]: newMessages
+            }
+          };
+
+          if (state.activeConversationId === conversationId) {
+            updates.messages = newMessages;
+          }
+
+          return updates;
+        });
+      },
+
+      loadLocalConversation: (conversationId) => {
+        set((state) => ({
+          activeConversationId: conversationId,
+          messages: state.localConversations[conversationId] || [],
+        }));
+      },
     }),
     {
       name: 'dify-chat-storage',
-      partialize: (state) => ({ activeConversationId: state.activeConversationId }),
+      partialize: (state) => ({
+        activeConversationId: state.activeConversationId,
+        localConversations: state.localConversations
+      }),
     }
   )
 );

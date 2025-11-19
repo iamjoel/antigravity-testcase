@@ -1,26 +1,34 @@
 "use client";
 
-import React from 'react';
-import { useAppStore } from "@/store/useAppStore";
+import React, { useState } from 'react';
+import { useAppStore, AppType } from "@/store/useAppStore";
 import { cn } from "@/lib/utils";
 import { AddAppDialog } from "@/components/apps/AddAppDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash2 } from "lucide-react";
 
 export function AppSidebar() {
   const { apps, activeAppId, setActiveApp, addApp, removeApp, _hasHydrated } = useAppStore();
+  const [activeTab, setActiveTab] = useState<AppType>('dify');
 
   React.useEffect(() => {
     const defaultKey = process.env.NEXT_PUBLIC_DIFY_DEMO_KEY;
-    if (_hasHydrated && apps.length === 0 && defaultKey) {
-      addApp({
-        id: 'default-app',
-        name: 'Dify Demo',
-        apiKey: defaultKey,
-        icon: '🤖',
-      });
+    if (_hasHydrated && defaultKey) {
+      const hasDefaultApp = apps.some(app => app.id === 'default-app');
+      if (!hasDefaultApp) {
+        addApp({
+          id: 'default-app',
+          name: 'Dify Demo',
+          apiKey: defaultKey,
+          icon: '🤖',
+          type: 'dify',
+        });
+      }
     }
-  }, [_hasHydrated, apps.length, addApp]);
+  }, [_hasHydrated, apps, addApp]);
+
+  const filteredApps = apps.filter(app => app.type === activeTab);
 
   return (
     <div className="flex flex-col h-full bg-[#F5F7FA] dark:bg-muted/10">
@@ -28,14 +36,24 @@ export function AppSidebar() {
         <h2 className="text-xs font-semibold text-muted-foreground tracking-wider">WEB APPS</h2>
         <AddAppDialog />
       </div>
+
+      <div className="px-4 pb-2">
+        <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as AppType)} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 h-8">
+            <TabsTrigger value="dify" className="text-xs">Dify</TabsTrigger>
+            <TabsTrigger value="model" className="text-xs">Model</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       <ScrollArea className="flex-1">
         <div className="px-2 space-y-1">
-          {apps.length === 0 && (
+          {filteredApps.length === 0 && (
             <div className="p-4 text-center text-sm text-muted-foreground">
-              No apps added yet.
+              No {activeTab} apps yet.
             </div>
           )}
-          {apps.map((app) => (
+          {filteredApps.map((app) => (
             <div
               key={app.id}
               className={cn(

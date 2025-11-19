@@ -1,11 +1,19 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export type AppType = 'dify' | 'model';
+
 export interface App {
   id: string;
   name: string;
   icon: string;
   apiKey: string;
+  type: AppType;
+  modelConfig?: {
+    provider: string;
+    model: string;
+    systemPrompt?: string;
+  };
 }
 
 interface AppState {
@@ -27,6 +35,13 @@ export const useAppStore = create<AppState>()(
       setHasHydrated: (state) => set({ _hasHydrated: state }),
       addApp: (app) =>
         set((state) => {
+          const defaultApp: App = {
+            id: 'default-dify-demo',
+            name: 'Dify Demo',
+            icon: '🤖',
+            apiKey: process.env.NEXT_PUBLIC_DIFY_DEMO_KEY || '',
+            type: 'dify',
+          };
           if (state.apps.some((a) => a.id === app.id)) {
             return state;
           }
