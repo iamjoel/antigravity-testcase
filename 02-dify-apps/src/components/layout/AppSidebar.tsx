@@ -12,7 +12,15 @@ import { Trash2 } from "lucide-react";
 export function AppSidebar() {
   const { apps, activeAppId, setActiveApp, addApp, removeApp, _hasHydrated } = useAppStore();
   const { setActiveConversation } = useChatStore();
-  const [activeTab, setActiveTab] = useState<AppType>('dify');
+
+  // Initialize from localStorage or default to 'dify'
+  const [activeTab, setActiveTab] = useState<AppType>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('app-sidebar-active-tab');
+      return (saved as AppType) || 'dify';
+    }
+    return 'dify';
+  });
 
   // ... existing useEffect ...
 
@@ -43,6 +51,15 @@ export function AppSidebar() {
 
   const filteredApps = apps.filter(app => app.type === activeTab);
 
+  const handleTabChange = (v: string) => {
+    const newTab = v as AppType;
+    setActiveTab(newTab);
+    // Persist to localStorage
+    localStorage.setItem('app-sidebar-active-tab', newTab);
+    const firstAppOfNewTab = apps.find(app => app.type === newTab);
+    setActiveApp(firstAppOfNewTab ? firstAppOfNewTab.id : null);
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
       <div className="h-16 px-4 flex items-center justify-between flex-shrink-0 border-b-4 border-black bg-white">
@@ -53,12 +70,7 @@ export function AppSidebar() {
       <div className="px-4 py-4 border-b-4 border-black bg-secondary/20">
         <Tabs
           value={activeTab}
-          onValueChange={(v: string) => {
-            const newTab = v as AppType;
-            setActiveTab(newTab);
-            const firstAppOfNewTab = apps.find(app => app.type === newTab);
-            setActiveApp(firstAppOfNewTab ? firstAppOfNewTab.id : null);
-          }}
+          onValueChange={handleTabChange}
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2 h-10 bg-white border-2 border-black p-0 gap-0 rounded-none shadow-[4px_4px_0px_0px_#000000]">
