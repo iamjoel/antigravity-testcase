@@ -19,7 +19,8 @@ export async function sendModelMessage(
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.details || `API Error: ${response.statusText}`);
   }
 
   const reader = response.body?.getReader();

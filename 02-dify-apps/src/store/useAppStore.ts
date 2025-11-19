@@ -22,7 +22,7 @@ interface AppState {
   _hasHydrated: boolean;
   addApp: (app: App) => void;
   removeApp: (id: string) => void;
-  setActiveApp: (id: string) => void;
+  setActiveApp: (id: string | null) => void;
   setHasHydrated: (state: boolean) => void;
 }
 

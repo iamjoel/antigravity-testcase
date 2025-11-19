@@ -35,9 +35,12 @@ interface ChatState {
 
   // Local Model App Support
   localConversations: Record<string, Message[]>;
+  modelConversations: Record<string, Conversation[]>;
   createLocalConversation: (appId: string) => string;
   saveLocalMessage: (conversationId: string, message: Message) => void;
   loadLocalConversation: (conversationId: string) => void;
+  fetchModelConversations: (appId: string) => void;
+  deleteLocalConversation: (appId: string, conversationId: string) => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -167,6 +170,7 @@ export const useChatStore = create<ChatState>()(
 
       // Local Model App Actions
       localConversations: {}, // Map<conversationId, Message[]>
+      modelConversations: {}, // Map<appId, Conversation[]>
 
       createLocalConversation: (appId) => {
         const id = crypto.randomUUID();
@@ -177,15 +181,23 @@ export const useChatStore = create<ChatState>()(
           introduction: '',
           createdAt: Date.now() / 1000,
         };
-        set((state) => ({
-          activeConversationId: id,
-          messages: [],
-          conversations: [newConversation, ...state.conversations], // Add to list (we might need to separate lists in UI or store)
-          localConversations: {
-            ...state.localConversations,
-            [id]: []
-          }
-        }));
+
+        set((state) => {
+          const appConversations = state.modelConversations[appId] || [];
+          return {
+            activeConversationId: id,
+            messages: [],
+            conversations: [newConversation, ...state.conversations],
+            localConversations: {
+              ...state.localConversations,
+              [id]: []
+            },
+            modelConversations: {
+              ...state.modelConversations,
+              [appId]: [newConversation, ...appConversations]
+            }
+          };
+        });
         return id;
       },
 
@@ -194,7 +206,6 @@ export const useChatStore = create<ChatState>()(
           const currentMessages = state.localConversations[conversationId] || [];
           const newMessages = [...currentMessages, message];
 
-          // Also update main messages if this is active
           const updates: Partial<ChatState> = {
             localConversations: {
               ...state.localConversations,
@@ -216,12 +227,41 @@ export const useChatStore = create<ChatState>()(
           messages: state.localConversations[conversationId] || [],
         }));
       },
+
+      fetchModelConversations: (appId) => {
+        set((state) => ({
+          conversations: state.modelConversations[appId] || [],
+          isLoadingConversations: false
+        }));
+      },
+
+      deleteLocalConversation: (appId, conversationId) => {
+        set((state) => {
+          const appConversations = state.modelConversations[appId] || [];
+          const updatedConversations = appConversations.filter(c => c.id !== conversationId);
+
+          // Also remove messages
+          const { [conversationId]: _, ...remainingLocalConversations } = state.localConversations;
+
+          return {
+            modelConversations: {
+              ...state.modelConversations,
+              [appId]: updatedConversations
+            },
+            localConversations: remainingLocalConversations,
+            conversations: updatedConversations, // Update current view
+            activeConversationId: state.activeConversationId === conversationId ? null : state.activeConversationId,
+            messages: state.activeConversationId === conversationId ? [] : state.messages
+          };
+        });
+      },
     }),
     {
       name: 'dify-chat-storage',
       partialize: (state) => ({
         activeConversationId: state.activeConversationId,
-        localConversations: state.localConversations
+        localConversations: state.localConversations,
+        modelConversations: state.modelConversations
       }),
     }
   )

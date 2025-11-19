@@ -15,18 +15,24 @@ export function ConversationList() {
     activeConversationId,
     setActiveConversation,
     deleteConversation,
+    deleteLocalConversation,
     fetchConversations,
     clearMessages,
-    isLoadingConversations
+    isLoadingConversations,
+    fetchModelConversations
   } = useChatStore();
 
   const activeApp = apps.find(a => a.id === activeAppId);
 
   useEffect(() => {
     if (activeApp) {
-      fetchConversations(activeApp.apiKey, 'user-123');
+      if (activeApp.type === 'dify') {
+        fetchConversations(activeApp.apiKey, 'user-123');
+      } else {
+        fetchModelConversations(activeApp.id);
+      }
     }
-  }, [activeApp, fetchConversations]);
+  }, [activeApp, fetchConversations, fetchModelConversations]);
 
   const handleNewChat = () => {
     setActiveConversation(null);
@@ -36,7 +42,11 @@ export function ConversationList() {
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (activeApp && confirm('Delete this conversation?')) {
-      await deleteConversation(activeApp.apiKey, id, 'user-123');
+      if (activeApp.type === 'dify') {
+        await deleteConversation(activeApp.apiKey, id, 'user-123');
+      } else {
+        deleteLocalConversation(activeApp.id, id);
+      }
     }
   };
 

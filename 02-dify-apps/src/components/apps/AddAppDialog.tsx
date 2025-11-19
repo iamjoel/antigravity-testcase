@@ -26,10 +26,25 @@ export function AddAppDialog() {
   // Model fields
   const [modelProvider, setModelProvider] = useState('openai');
   const [modelName, setModelName] = useState('gpt-4o');
-  const [modelApiKey, setModelApiKey] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
 
   const addApp = useAppStore((state) => state.addApp);
+
+  const [hasEnvKey, setHasEnvKey] = useState(false);
+
+  React.useEffect(() => {
+    import('@/app/actions/check-env').then(({ checkOpenAIKey }) => {
+      checkOpenAIKey().then(setHasEnvKey);
+    });
+  }, []);
+
+  const handleModelChange = (value: string) => {
+    setModelName(value);
+    // Auto-fill name if empty or if it matches a known model name
+    if (!name || ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'].includes(name)) {
+      setName(value);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +59,12 @@ export function AddAppDialog() {
         type: 'dify',
       });
     } else {
-      if (!name || !modelApiKey) return;
+      if (!name) return;
       addApp({
         id: uuidv4(),
         name,
         icon,
-        apiKey: modelApiKey,
+        apiKey: '', // Always empty, relying on server-side env key
         type: 'model',
         modelConfig: {
           provider: modelProvider,
@@ -67,7 +82,6 @@ export function AddAppDialog() {
     setName('');
     setIcon('🤖');
     setDifyApiKey('');
-    setModelApiKey('');
     setSystemPrompt('');
     setActiveTab('dify');
   };
@@ -112,7 +126,7 @@ export function AddAppDialog() {
             <TabsContent value="model" className="space-y-4">
               <div className="space-y-2">
                 <Label>Model</Label>
-                <Select value={modelName} onValueChange={setModelName}>
+                <Select value={modelName} onValueChange={handleModelChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
@@ -124,10 +138,11 @@ export function AddAppDialog() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="modelApiKey">OpenAI API Key</Label>
-                <Input id="modelApiKey" type="password" value={modelApiKey} onChange={(e) => setModelApiKey(e.target.value)} placeholder="sk-..." required={activeTab === 'model'} />
-              </div>
+              {!hasEnvKey && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
+                  Warning: OPENAI_API_KEY is not configured in environment variables. Chat may fail.
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="systemPrompt">System Prompt (Optional)</Label>

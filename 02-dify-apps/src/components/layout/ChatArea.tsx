@@ -132,27 +132,14 @@ export function ChatArea() {
           (chunk) => {
             currentAnswer += chunk;
             updateMessage(assistantMsgId, currentAnswer);
-            if (currentConversationId) {
-              // We need to update the saved message too, but updateMessage only updates state.messages
-              // We should probably have updateLocalMessage too, or just save at the end.
-              // For streaming, saving at the end is better for performance, 
-              // but if we want real-time persistence we need to update.
-              // Let's save at the end.
-            }
           }
         );
 
-        if (currentConversationId) {
-          saveLocalMessage(currentConversationId, { ...assistantMsg, content: currentAnswer });
-        }
       }
 
     } catch (error) {
       console.error('Failed to send message:', error);
       updateMessage(assistantMsgId, "Error: Failed to get response.");
-      if (activeApp.type === 'model' && currentConversationId) {
-        saveLocalMessage(currentConversationId, { ...assistantMsg, content: "Error: Failed to get response." });
-      }
     } finally {
       setIsSending(false);
     }

@@ -4,17 +4,31 @@ import { streamText } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages, model, apiKey, system } = await req.json();
+  try {
+    const { messages, model, apiKey: clientApiKey, system } = await req.json();
+    const apiKey = clientApiKey || process.env.OPENAI_API_KEY;
+    console.log("API Route Request:", { model, system, messageCount: messages?.length, firstMessage: messages?.[0], hasKey: !!apiKey });
 
-  const openai = createOpenAI({
-    apiKey: apiKey,
-  });
+    if (!apiKey) {
+      return new Response("Missing API Key", { status: 400 });
+    }
 
-  const result = streamText({
-    model: openai(model),
-    messages,
-    system,
-  });
+    const openai = createOpenAI({
+      apiKey: apiKey,
+    });
 
-  return result.toDataStreamResponse();
+    const result = streamText({
+      model: openai(model),
+      messages,
+      system,
+    });
+
+    return result.toTextStreamResponse();
+  } catch (error) {
+    console.error("API Route Error:", error);
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: error instanceof Error ? error.message : String(error) }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

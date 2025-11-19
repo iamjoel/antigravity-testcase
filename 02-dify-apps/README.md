@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dify Chatbot Aggregator
+
+A Next.js web application that aggregates multiple Dify Chatbots and Vercel AI SDK Model Apps into a single, unified interface.
+
+## Features
+
+- **Unified Interface**: Access multiple chatbots from a single sidebar.
+- **App Types**:
+  - **Dify Apps**: Connect to existing Dify chatbots via API Key.
+  - **Model Apps**: Chat directly with LLMs (like GPT-4o) using Vercel AI SDK.
+- **Real-time Streaming**: Smooth, streaming responses for all chat interactions.
+- **Conversation History**:
+  - **Dify**: Synced with Dify's backend history.
+  - **Model Apps**: Persisted locally in your browser.
+- **Persistence**: App configurations are saved in Local Storage.
+- **Secure Configuration**: Support for environment variables to manage API keys securely.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18+ installed.
+- A Dify account (for Dify Apps).
+- An OpenAI API Key (for Model Apps).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd 02-dify-apps
+    ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
 
-## Learn More
+3.  Configure Environment Variables:
+    Create a `.env.local` file in the root directory:
+    ```bash
+    touch .env.local
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+    Add the following keys:
+    ```env
+    # Optional: Default Dify App to load on start
+    NEXT_PUBLIC_DIFY_DEMO_KEY=your-dify-app-api-key
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    # Required for Model Apps (GPT-4, etc.)
+    OPENAI_API_KEY=sk-your-openai-api-key
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4.  Run the development server:
+    ```bash
+    npm run dev
+    ```
 
-## Deploy on Vercel
+5.  Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Usage
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Adding a Dify App
+1.  Click the **+** button in the sidebar.
+2.  Select **Dify App**.
+3.  Enter a Name, Icon (Emoji), and your **Dify API Key**.
+4.  Click **Add App**.
+
+### Adding a Model App
+1.  Click the **+** button in the sidebar.
+2.  Select **Model App**.
+3.  Choose a model (e.g., GPT-4o).
+4.  **API Key**:
+    - If `OPENAI_API_KEY` is set in `.env.local`, you don't need to do anything.
+    - If not, you will see a warning.
+5.  Click **Add App**.
+
+### Managing Apps
+- **Switch Apps**: Click on an app in the sidebar.
+- **Remove App**: Hover over an app in the sidebar and click the trash icon.
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Styling**: Tailwind CSS, shadcn/ui
+- **State Management**: Zustand (with persistence)
+- **AI Integration**: Vercel AI SDK
+- **Icons**: Lucide React
+
+## License
+
+[MIT](LICENSE)

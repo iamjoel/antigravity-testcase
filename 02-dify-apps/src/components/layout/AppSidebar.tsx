@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAppStore, AppType } from "@/store/useAppStore";
+import { useChatStore } from "@/store/useChatStore";
 import { cn } from "@/lib/utils";
 import { AddAppDialog } from "@/components/apps/AddAppDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,7 +11,19 @@ import { Trash2 } from "lucide-react";
 
 export function AppSidebar() {
   const { apps, activeAppId, setActiveApp, addApp, removeApp, _hasHydrated } = useAppStore();
+  const { setActiveConversation } = useChatStore();
   const [activeTab, setActiveTab] = useState<AppType>('dify');
+
+  // ... existing useEffect ...
+
+  const handleAppClick = (appId: string) => {
+    setActiveApp(appId);
+    setActiveConversation(null);
+  };
+
+  // ... existing render ...
+
+
 
   React.useEffect(() => {
     const defaultKey = process.env.NEXT_PUBLIC_DIFY_DEMO_KEY;
@@ -38,7 +51,16 @@ export function AppSidebar() {
       </div>
 
       <div className="px-4 pb-2">
-        <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as AppType)} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v: string) => {
+            const newTab = v as AppType;
+            setActiveTab(newTab);
+            const firstAppOfNewTab = apps.find(app => app.type === newTab);
+            setActiveApp(firstAppOfNewTab ? firstAppOfNewTab.id : null);
+          }}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-2 h-8">
             <TabsTrigger value="dify" className="text-xs">Dify</TabsTrigger>
             <TabsTrigger value="model" className="text-xs">Model</TabsTrigger>
@@ -62,7 +84,7 @@ export function AppSidebar() {
                   ? "bg-white shadow-sm text-foreground"
                   : "text-muted-foreground hover:bg-white/50 hover:text-foreground"
               )}
-              onClick={() => setActiveApp(app.id)}
+              onClick={() => handleAppClick(app.id)}
             >
               <span className="text-xl flex-shrink-0">{app.icon}</span>
               <span className="truncate font-medium flex-1 text-left">{app.name}</span>
