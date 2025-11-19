@@ -124,7 +124,8 @@ export async function deleteConversation(apiKey: string, conversationId: string,
     throw new Error(`API Error: ${response.statusText}`);
   }
 
-  return response.json();
+  const text = await response.text();
+  return text ? JSON.parse(text) : { result: 'success' };
 }
 
 export async function renameConversation(apiKey: string, conversationId: string, name: string, user: string) {
